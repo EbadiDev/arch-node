@@ -29,6 +29,14 @@ build:
 setup:
 	@./scripts/setup.sh
 
+.PHONY: setup-xray
+setup-xray:
+	@./scripts/setup-xray.sh
+
+.PHONY: setup-xray-all
+setup-xray-all:
+	@./scripts/setup-xray.sh latest all
+
 .PHONY: update
 update:
 	@git fetch --all
