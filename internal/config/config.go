@@ -15,7 +15,7 @@ const defaultConfigPath = "configs/main.defaults.json"
 const configPath = "configs/main.json"
 
 const AppName = "Arch-Node"
-const AppVersion = "v0.8.33"
+const AppVersion = "v25.8.21"
 
 const XrayConfigPath = "storage/app/xray.json"
 const XrayLogLevel = "debug"
