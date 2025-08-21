@@ -5,16 +5,16 @@
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://hub.docker.com)
 [![Status](https://img.shields.io/badge/status-development-orange.svg)](https://github.com/miladrahimi/p-node)
 
-**Arch-Node** is a high-performance, lightweight multicore proxy node built with Go that integrates Xray-core for advanced traffic management and tunneling capabilities. It serves as a distributed node component that works seamlessly with the Arch-Manager ecosystem.
+**Arch-Node** is a high-performance, lightweight multi-core proxy node built with Go that integrates multiple VPN cores for advanced traffic management and tunneling capabilities. It serves as a distributed node component that works seamlessly with the Arch-Manager ecosystem.
 
 > ⚠️ **Development Status**: This project is currently in active development and is **not production ready**. Use at your own risk in production environments.
 
 ## ✨ Features
 
 - **🚀 High Performance**: Built with Go for optimal speed and resource efficiency
-- **⚡ Multicore Support**: Leverages multiple CPU cores for enhanced performance
+- **⚡ Multi-Core Support**: Supports multiple VPN cores (currently Xray-Core, more coming soon)
 - **🔄 Xray Integration**: Full integration with Xray-core for advanced proxy protocols
-- **🔮 Future-Ready**: Clash Meta core implementation planned for extended protocol support
+- **🔮 Extensible**: Modular architecture designed for easy integration of additional proxy cores
 - **📊 Real-time Monitoring**: Built-in HTTP API for status monitoring and statistics
 - **🔧 Easy Management**: Simple configuration and deployment via Arch-Manager
 - **🐳 Docker Support**: Ready-to-use Docker containers and compose files
@@ -27,11 +27,11 @@
 Arch-Node consists of several key components:
 
 - **HTTP Server**: RESTful API for management and monitoring
-- **Xray Core**: Current traffic proxy and tunneling engine with multicore support
-- **Clash Meta Core**: Planned implementation for enhanced protocol support (coming soon)
+- **Xray Core**: Current traffic proxy and tunneling engine
+- **Core Manager**: Pluggable architecture for additional proxy cores (planned)
 - **Database Manager**: Configuration and state persistence
 - **Coordinator**: Synchronization with Arch-Manager
-- **Worker Pool**: Concurrent task processing with multicore optimization
+- **Worker Pool**: Concurrent task processing with multi-core optimization
 
 ## 🚀 Quick Start
 
