@@ -272,15 +272,6 @@ cd arch-node-2 && make setup
    ufw status
    ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and add tests
-4. Commit your changes: `git commit -am 'Add feature'`
-5. Push to the branch: `git push origin feature-name`
-6. Submit a pull request
-
 ## 📚 Related Projects
 
 - **[Arch-Manager](https://github.com/ebadidev/arch-manager)** - Central management platform
