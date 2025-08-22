@@ -45,7 +45,7 @@ func TestMakeVlessInbound(t *testing.T) {
 func TestMakeVmessInbound(t *testing.T) {
 	config := NewConfig("info")
 	
-	inbound := config.MakeVmessInbound("vmess-test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+	inbound := config.MakeVmessInbound("vmess-test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 	
 	if inbound.Tag != "vmess-test" {
 		t.Errorf("Expected tag 'vmess-test', got %s", inbound.Tag)
@@ -146,7 +146,7 @@ func TestMakeVlessOutbound(t *testing.T) {
 func TestMakeVmessOutbound(t *testing.T) {
 	config := NewConfig("info")
 	
-	outbound := config.MakeVmessOutbound("vmess-out", "example.com", 443, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+	outbound := config.MakeVmessOutbound("vmess-out", "example.com", 443, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 	
 	if outbound.Tag != "vmess-out" {
 		t.Errorf("Expected tag 'vmess-out', got %s", outbound.Tag)

@@ -28,13 +28,13 @@ func TestProtocolCompatibility(t *testing.T) {
 		{
 			"VMess Inbound",
 			func() interface{} {
-				return config.MakeVmessInbound("test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+				return config.MakeVmessInbound("test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 			},
 		},
 		{
 			"VMess Outbound",
 			func() interface{} {
-				return config.MakeVmessOutbound("test", "example.com", 443, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+				return config.MakeVmessOutbound("test", "example.com", 443, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 			},
 		},
 		{
@@ -92,14 +92,14 @@ func TestConfigWithAllProtocols(t *testing.T) {
 	
 	// Add all protocol types
 	vlessInbound := config.MakeVlessInbound("vless-in", 10001, "550e8400-e29b-41d4-a716-446655440000", "tcp", nil)
-	vmessInbound := config.MakeVmessInbound("vmess-in", 10002, "550e8400-e29b-41d4-a716-446655440001", "auto", "tcp")
+	vmessInbound := config.MakeVmessInbound("vmess-in", 10002, "550e8400-e29b-41d4-a716-446655440001", "auto", nil)
 	trojanInbound := config.MakeTrojanInbound("trojan-in", 10003, "password123", "tcp", nil)
 	ssInbound := config.MakeShadowsocksInbound("ss-in", "password456", "aes-256-gcm", "tcp", 10004, []*Client{})
 	
 	config.Inbounds = append(config.Inbounds, vlessInbound, vmessInbound, trojanInbound, ssInbound)
 	
 	vlessOutbound := config.MakeVlessOutbound("vless-out", "example.com", 443, "550e8400-e29b-41d4-a716-446655440002", "tcp")
-	vmessOutbound := config.MakeVmessOutbound("vmess-out", "example.com", 443, "550e8400-e29b-41d4-a716-446655440003", "auto", "tcp")
+	vmessOutbound := config.MakeVmessOutbound("vmess-out", "example.com", 443, "550e8400-e29b-41d4-a716-446655440003", "auto", nil)
 	trojanOutbound := config.MakeTrojanOutbound("trojan-out", "example.com", 443, "password789", "tcp")
 	ssOutbound := config.MakeShadowsocksOutbound("ss-out", "example.com", "password101112", "aes-256-gcm", 443)
 	
@@ -156,7 +156,7 @@ func TestProtocolSpecificFeatures(t *testing.T) {
 	
 	// Test VMess specific features
 	t.Run("VMess Features", func(t *testing.T) {
-		inbound := config.MakeVmessInbound("vmess-test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+		inbound := config.MakeVmessInbound("vmess-test", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 		
 		client := inbound.Settings.Clients[0]
 		if client.ID == "" {

@@ -63,7 +63,7 @@ func TestProtocolValidation(t *testing.T) {
 
 	// Test valid VMess configuration
 	t.Run("Valid VMess", func(t *testing.T) {
-		vmessInbound := config.MakeVmessInbound("vmess-valid", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", "tcp")
+		vmessInbound := config.MakeVmessInbound("vmess-valid", 10002, "550e8400-e29b-41d4-a716-446655440000", "auto", nil)
 		config.Inbounds = append(config.Inbounds, vmessInbound)
 		
 		err := config.validateProtocolSpecific()
