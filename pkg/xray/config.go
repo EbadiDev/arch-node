@@ -13,7 +13,7 @@ type Log struct {
 }
 
 type Client struct {
-	Password string `json:"password" validate:"omitempty,min=1,max=64"`
+	Password string `json:"password,omitempty" validate:"omitempty,min=1,max=64"`
 	Method   string `json:"method,omitempty"`     // Required for Shadowsocks, optional for others
 	Email    string `json:"email" validate:"required"`
 	ID       string `json:"id,omitempty"`         // For VMess/VLESS UUID
