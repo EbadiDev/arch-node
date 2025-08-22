@@ -14,11 +14,12 @@ type Log struct {
 
 type Client struct {
 	Password string `json:"password" validate:"omitempty,min=1,max=64"`
-	Method   string `json:"method" validate:"required"`
+	Method   string `json:"method,omitempty"`     // Required for Shadowsocks, optional for others
 	Email    string `json:"email" validate:"required"`
-	ID       string `json:"id,omitempty"`       // For VMess/VLESS UUID
-	AlterId  int    `json:"alterId,omitempty"`  // For VMess
-	Level    int    `json:"level,omitempty"`    // User level
+	ID       string `json:"id,omitempty"`         // For VMess/VLESS UUID
+	AlterId  int    `json:"alterId,omitempty"`    // For VMess
+	Level    int    `json:"level,omitempty"`      // User level
+	Security string `json:"security,omitempty"`   // For VMess/VLESS security
 }
 
 type InboundSettings struct {
@@ -41,12 +42,13 @@ type Inbound struct {
 type OutboundServer struct {
 	Address  string `json:"address" validate:"required"`
 	Port     int    `json:"port" validate:"required,min=1,max=65536"`
-	Method   string `json:"method" validate:"required"`
-	Password string `json:"password" validate:"omitempty"`
+	Method   string `json:"method,omitempty"`     // Only required for Shadowsocks
+	Password string `json:"password,omitempty"`   // For Shadowsocks/Trojan
 	Uot      bool   `json:"uot"`
-	ID       string `json:"id,omitempty"`      // For VMess/VLESS UUID  
-	AlterId  int    `json:"alterId,omitempty"` // For VMess
-	Level    int    `json:"level,omitempty"`   // User level
+	ID       string `json:"id,omitempty"`         // For VMess/VLESS UUID  
+	AlterId  int    `json:"alterId,omitempty"`    // For VMess
+	Level    int    `json:"level,omitempty"`      // User level
+	Security string `json:"security,omitempty"`   // For VMess/VLESS/Trojan
 }
 
 type OutboundSettings struct {
@@ -225,10 +227,10 @@ func (c *Config) MakeVmessInbound(tag string, port int, uuid, encryption, networ
 			{
 				ID:       uuid,
 				Password: "",
-				Method:   encryption,
 				Email:    "client@example.com",
 				AlterId:  0,
 				Level:    0,
+				Security: encryption, // Use Security field for VMess encryption
 			},
 		},
 	}
@@ -251,11 +253,11 @@ func (c *Config) MakeVmessOutbound(tag, address string, port int, uuid, encrypti
 				{
 					Address:  address,
 					Port:     port,
-					Method:   encryption,
 					Password: "",
 					ID:       uuid,
 					AlterId:  0,
 					Level:    0,
+					Security: encryption, // Use Security field for VMess encryption
 				},
 			},
 		},
@@ -271,7 +273,6 @@ func (c *Config) MakeTrojanInbound(tag string, port int, password, network strin
 		Clients: []*Client{
 			{
 				Password: password,
-				Method:   "none",
 				Email:    "client@example.com",
 			},
 		},
@@ -295,7 +296,6 @@ func (c *Config) MakeTrojanOutbound(tag, address string, port int, password, net
 				{
 					Address:  address,
 					Port:     port,
-					Method:   "none",
 					Password: password,
 				},
 			},
@@ -337,7 +337,104 @@ func (c *Config) Validate() error {
 	if c.FindInbound("api") == nil {
 		return errors.New("xray: config: api inbound not found")
 	}
+	
+	// Protocol-aware validation
+	if err := c.validateProtocolSpecific(); err != nil {
+		return errors.WithStack(err)
+	}
+	
 	return errors.WithStack(validator.New(validator.WithRequiredStructEnabled()).Struct(c))
+}
+
+// validateProtocolSpecific performs protocol-specific validation
+func (c *Config) validateProtocolSpecific() error {
+	// Validate inbounds
+	for _, inbound := range c.Inbounds {
+		if inbound.Settings != nil && inbound.Settings.Clients != nil {
+			for _, client := range inbound.Settings.Clients {
+				if err := c.validateClient(client, inbound.Protocol); err != nil {
+					return errors.Wrapf(err, "invalid client for protocol %s in inbound %s", inbound.Protocol, inbound.Tag)
+				}
+			}
+		}
+	}
+	
+	// Validate outbounds
+	for _, outbound := range c.Outbounds {
+		if outbound.Settings != nil && outbound.Settings.Servers != nil {
+			for _, server := range outbound.Settings.Servers {
+				if err := c.validateServer(server, outbound.Protocol); err != nil {
+					return errors.Wrapf(err, "invalid server for protocol %s in outbound %s", outbound.Protocol, outbound.Tag)
+				}
+			}
+		}
+	}
+	
+	return nil
+}
+
+// validateClient validates client configuration based on protocol
+func (c *Config) validateClient(client *Client, protocol string) error {
+	switch protocol {
+	case "shadowsocks":
+		if client.Method == "" {
+			return errors.New("shadowsocks client requires method field")
+		}
+		if client.Password == "" {
+			return errors.New("shadowsocks client requires password field")
+		}
+	case "vmess":
+		if client.ID == "" {
+			return errors.New("vmess client requires id (UUID) field")
+		}
+	case "vless":
+		if client.ID == "" {
+			return errors.New("vless client requires id (UUID) field")
+		}
+	case "trojan":
+		if client.Password == "" {
+			return errors.New("trojan client requires password field")
+		}
+	case "dokodemo-door", "freedom", "blackhole", "socks", "http":
+		// System protocols - no client validation needed
+		break
+	default:
+		// Allow unknown protocols to pass validation
+		break
+	}
+	return nil
+}
+
+// validateServer validates server configuration based on protocol
+func (c *Config) validateServer(server *OutboundServer, protocol string) error {
+	switch protocol {
+	case "shadowsocks":
+		if server.Method == "" {
+			return errors.New("shadowsocks server requires method field")
+		}
+		if server.Password == "" {
+			return errors.New("shadowsocks server requires password field")
+		}
+	case "vmess":
+		if server.ID == "" {
+			return errors.New("vmess server requires id (UUID) field")
+		}
+	case "vless":
+		if server.ID == "" {
+			return errors.New("vless server requires id (UUID) field")
+		}
+	case "trojan":
+		if server.Password == "" {
+			return errors.New("trojan server requires password field")
+		}
+	case "freedom", "blackhole", "socks", "http":
+		// System protocols - no server validation needed
+		break
+	default:
+		// Allow unknown protocols to pass validation
+		break
+	}
+	return nil
 }
 
 func (c *Config) Equals(other *Config) bool {

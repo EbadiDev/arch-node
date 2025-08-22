@@ -68,8 +68,8 @@ func TestMakeVmessInbound(t *testing.T) {
 		t.Errorf("Expected UUID, got %s", client.ID)
 	}
 	
-	if client.Method != "auto" {
-		t.Errorf("Expected method 'auto', got %s", client.Method)
+	if client.Security != "auto" {
+		t.Errorf("Expected security 'auto', got %s", client.Security)
 	}
 	
 	// Test JSON serialization
@@ -169,8 +169,8 @@ func TestMakeVmessOutbound(t *testing.T) {
 		t.Errorf("Expected UUID, got %s", server.ID)
 	}
 	
-	if server.Method != "auto" {
-		t.Errorf("Expected method 'auto', got %s", server.Method)
+	if server.Security != "auto" {
+		t.Errorf("Expected security 'auto', got %s", server.Security)
 	}
 }
 

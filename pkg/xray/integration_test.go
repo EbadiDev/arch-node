@@ -167,8 +167,8 @@ func TestProtocolSpecificFeatures(t *testing.T) {
 			t.Error("VMess client should have AlterId set to 0")
 		}
 		
-		if client.Method != "auto" {
-			t.Error("VMess client should have correct encryption method")
+		if client.Security != "auto" {
+			t.Error("VMess client should have correct encryption security")
 		}
 	})
 	
@@ -181,8 +181,8 @@ func TestProtocolSpecificFeatures(t *testing.T) {
 			t.Error("Trojan client should have password set correctly")
 		}
 		
-		if client.Method != "none" {
-			t.Error("Trojan client should have method set to 'none'")
+		if client.Method != "" {
+			t.Error("Trojan client should not have method field set")
 		}
 		
 		if client.ID != "" {
