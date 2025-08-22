@@ -13,17 +13,21 @@ type Log struct {
 }
 
 type Client struct {
-	Password string `json:"password" validate:"required,min=1,max=64"`
+	Password string `json:"password" validate:"omitempty,min=1,max=64"`
 	Method   string `json:"method" validate:"required"`
 	Email    string `json:"email" validate:"required"`
+	ID       string `json:"id,omitempty"`       // For VMess/VLESS UUID
+	AlterId  int    `json:"alterId,omitempty"`  // For VMess
+	Level    int    `json:"level,omitempty"`    // User level
 }
 
 type InboundSettings struct {
-	Address  string    `json:"address,omitempty"`
-	Clients  []*Client `json:"clients,omitempty" validate:"omitempty,dive"`
-	Network  string    `json:"network,omitempty"`
-	Method   string    `json:"method,omitempty"`
-	Password string    `json:"password,omitempty"`
+	Address    string    `json:"address,omitempty"`
+	Clients    []*Client `json:"clients,omitempty" validate:"omitempty,dive"`
+	Network    string    `json:"network,omitempty"`
+	Method     string    `json:"method,omitempty"`
+	Password   string    `json:"password,omitempty"`
+	Decryption string    `json:"decryption,omitempty"` // For VLESS
 }
 
 type Inbound struct {
@@ -38,8 +42,11 @@ type OutboundServer struct {
 	Address  string `json:"address" validate:"required"`
 	Port     int    `json:"port" validate:"required,min=1,max=65536"`
 	Method   string `json:"method" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Password string `json:"password" validate:"omitempty"`
 	Uot      bool   `json:"uot"`
+	ID       string `json:"id,omitempty"`      // For VMess/VLESS UUID  
+	AlterId  int    `json:"alterId,omitempty"` // For VMess
+	Level    int    `json:"level,omitempty"`   // User level
 }
 
 type OutboundSettings struct {
@@ -159,6 +166,142 @@ func (c *Config) MakeShadowsocksOutbound(tag, host, password, method string, por
 		},
 		StreamSettings: &StreamSettings{
 			Network: "tcp",
+		},
+	}
+}
+
+// VLESS Protocol Support
+func (c *Config) MakeVlessInbound(tag string, port int, uuid string, network string, security interface{}) *Inbound {
+	settings := &InboundSettings{
+		Clients: []*Client{
+			{
+				ID:       uuid,
+				Password: "",
+				Method:   "none",
+				Email:    "client@example.com",
+				Level:    0,
+			},
+		},
+		Decryption: "none",
+	}
+	
+	inbound := &Inbound{
+		Tag:      tag,
+		Protocol: "vless",
+		Listen:   "0.0.0.0",
+		Port:     port,
+		Settings: settings,
+	}
+	
+	return inbound
+}
+
+func (c *Config) MakeVlessOutbound(tag, address string, port int, uuid, network string) *Outbound {
+	return &Outbound{
+		Tag:      tag,
+		Protocol: "vless",
+		Settings: &OutboundSettings{
+			Servers: []*OutboundServer{
+				{
+					Address:  address,
+					Port:     port,
+					Method:   "none",
+					Password: "",
+					ID:       uuid,
+					Level:    0,
+				},
+			},
+		},
+		StreamSettings: &StreamSettings{
+			Network: network,
+		},
+	}
+}
+
+// VMess Protocol Support  
+func (c *Config) MakeVmessInbound(tag string, port int, uuid, encryption, network string) *Inbound {
+	settings := &InboundSettings{
+		Clients: []*Client{
+			{
+				ID:       uuid,
+				Password: "",
+				Method:   encryption,
+				Email:    "client@example.com",
+				AlterId:  0,
+				Level:    0,
+			},
+		},
+	}
+	
+	return &Inbound{
+		Tag:      tag,
+		Protocol: "vmess",
+		Listen:   "0.0.0.0",
+		Port:     port,
+		Settings: settings,
+	}
+}
+
+func (c *Config) MakeVmessOutbound(tag, address string, port int, uuid, encryption, network string) *Outbound {
+	return &Outbound{
+		Tag:      tag,
+		Protocol: "vmess",
+		Settings: &OutboundSettings{
+			Servers: []*OutboundServer{
+				{
+					Address:  address,
+					Port:     port,
+					Method:   encryption,
+					Password: "",
+					ID:       uuid,
+					AlterId:  0,
+					Level:    0,
+				},
+			},
+		},
+		StreamSettings: &StreamSettings{
+			Network: network,
+		},
+	}
+}
+
+// Trojan Protocol Support
+func (c *Config) MakeTrojanInbound(tag string, port int, password, network string, security interface{}) *Inbound {
+	settings := &InboundSettings{
+		Clients: []*Client{
+			{
+				Password: password,
+				Method:   "none",
+				Email:    "client@example.com",
+			},
+		},
+	}
+	
+	return &Inbound{
+		Tag:      tag,
+		Protocol: "trojan",
+		Listen:   "0.0.0.0",
+		Port:     port,
+		Settings: settings,
+	}
+}
+
+func (c *Config) MakeTrojanOutbound(tag, address string, port int, password, network string) *Outbound {
+	return &Outbound{
+		Tag:      tag,
+		Protocol: "trojan",
+		Settings: &OutboundSettings{
+			Servers: []*OutboundServer{
+				{
+					Address:  address,
+					Port:     port,
+					Method:   "none",
+					Password: password,
+				},
+			},
+		},
+		StreamSettings: &StreamSettings{
+			Network: network,
 		},
 	}
 }
