@@ -156,21 +156,26 @@ func TestMakeVmessOutbound(t *testing.T) {
 		t.Errorf("Expected protocol 'vmess', got %s", outbound.Protocol)
 	}
 	
-	if len(outbound.Settings.Servers) != 1 {
-		t.Errorf("Expected 1 server, got %d", len(outbound.Settings.Servers))
+	if len(outbound.Settings.Vnext) != 1 {
+		t.Errorf("Expected 1 vnext server, got %d", len(outbound.Settings.Vnext))
 	}
 	
-	server := outbound.Settings.Servers[0]
-	if server.Address != "example.com" {
-		t.Errorf("Expected address 'example.com', got %s", server.Address)
+	vnext := outbound.Settings.Vnext[0]
+	if vnext.Address != "example.com" {
+		t.Errorf("Expected address 'example.com', got %s", vnext.Address)
 	}
 	
-	if server.ID != "550e8400-e29b-41d4-a716-446655440000" {
-		t.Errorf("Expected UUID, got %s", server.ID)
+	if len(vnext.Users) != 1 {
+		t.Errorf("Expected 1 user, got %d", len(vnext.Users))
 	}
 	
-	if server.Security != "auto" {
-		t.Errorf("Expected security 'auto', got %s", server.Security)
+	user := vnext.Users[0]
+	if user.ID != "550e8400-e29b-41d4-a716-446655440000" {
+		t.Errorf("Expected UUID, got %s", user.ID)
+	}
+	
+	if user.Security != "auto" {
+		t.Errorf("Expected security 'auto', got %s", user.Security)
 	}
 }
 

@@ -53,6 +53,22 @@ type OutboundServer struct {
 
 type OutboundSettings struct {
 	Servers []*OutboundServer `json:"servers,omitempty" validate:"omitempty,dive"`
+	Vnext   []*VnextServer    `json:"vnext,omitempty" validate:"omitempty,dive"`
+}
+
+// VnextServer represents a VMess outbound server configuration
+type VnextServer struct {
+	Address string      `json:"address" validate:"required"`
+	Port    int         `json:"port" validate:"required,min=1,max=65536"`
+	Users   []*VmessUser `json:"users" validate:"required,dive"`
+}
+
+// VmessUser represents a VMess user configuration for outbound connections
+type VmessUser struct {
+	ID       string `json:"id" validate:"required"`
+	AlterId  int    `json:"alterId,omitempty"`
+	Level    int    `json:"level,omitempty"`
+	Security string `json:"security,omitempty"`
 }
 
 type StreamSettings struct {
@@ -177,11 +193,9 @@ func (c *Config) MakeVlessInbound(tag string, port int, uuid string, network str
 	settings := &InboundSettings{
 		Clients: []*Client{
 			{
-				ID:       uuid,
-				Password: "",
-				Method:   "none",
-				Email:    "client@example.com",
-				Level:    0,
+				ID:    uuid,
+				Email: "client@example.com",
+				Level: 0,
 			},
 		},
 		Decryption: "none",
@@ -205,12 +219,10 @@ func (c *Config) MakeVlessOutbound(tag, address string, port int, uuid, network 
 		Settings: &OutboundSettings{
 			Servers: []*OutboundServer{
 				{
-					Address:  address,
-					Port:     port,
-					Method:   "none",
-					Password: "",
-					ID:       uuid,
-					Level:    0,
+					Address: address,
+					Port:    port,
+					ID:      uuid,
+					Level:   0,
 				},
 			},
 		},
@@ -226,7 +238,6 @@ func (c *Config) MakeVmessInbound(tag string, port int, uuid, encryption, networ
 		Clients: []*Client{
 			{
 				ID:       uuid,
-				Password: "",
 				Email:    "client@example.com",
 				AlterId:  0,
 				Level:    0,
@@ -249,15 +260,18 @@ func (c *Config) MakeVmessOutbound(tag, address string, port int, uuid, encrypti
 		Tag:      tag,
 		Protocol: "vmess",
 		Settings: &OutboundSettings{
-			Servers: []*OutboundServer{
+			Vnext: []*VnextServer{
 				{
-					Address:  address,
-					Port:     port,
-					Password: "",
-					ID:       uuid,
-					AlterId:  0,
-					Level:    0,
-					Security: encryption, // Use Security field for VMess encryption
+					Address: address,
+					Port:    port,
+					Users: []*VmessUser{
+						{
+							ID:       uuid,
+							AlterId:  0,
+							Level:    0,
+							Security: encryption,
+						},
+					},
 				},
 			},
 		},
@@ -361,10 +375,22 @@ func (c *Config) validateProtocolSpecific() error {
 	
 	// Validate outbounds
 	for _, outbound := range c.Outbounds {
-		if outbound.Settings != nil && outbound.Settings.Servers != nil {
-			for _, server := range outbound.Settings.Servers {
-				if err := c.validateServer(server, outbound.Protocol); err != nil {
-					return errors.Wrapf(err, "invalid server for protocol %s in outbound %s", outbound.Protocol, outbound.Tag)
+		if outbound.Settings != nil {
+			// Validate servers (for Shadowsocks, VLESS, Trojan)
+			if outbound.Settings.Servers != nil {
+				for _, server := range outbound.Settings.Servers {
+					if err := c.validateServer(server, outbound.Protocol); err != nil {
+						return errors.Wrapf(err, "invalid server for protocol %s in outbound %s", outbound.Protocol, outbound.Tag)
+					}
+				}
+			}
+			
+			// Validate vnext (for VMess)
+			if outbound.Settings.Vnext != nil {
+				for _, vnext := range outbound.Settings.Vnext {
+					if err := c.validateVnext(vnext, outbound.Protocol); err != nil {
+						return errors.Wrapf(err, "invalid vnext for protocol %s in outbound %s", outbound.Protocol, outbound.Tag)
+					}
 				}
 			}
 		}
@@ -433,6 +459,21 @@ func (c *Config) validateServer(server *OutboundServer, protocol string) error {
 	default:
 		// Allow unknown protocols to pass validation
 		break
+	}
+	return nil
+}
+
+// validateVnext validates VMess vnext configuration
+func (c *Config) validateVnext(vnext *VnextServer, protocol string) error {
+	if protocol == "vmess" {
+		if len(vnext.Users) == 0 {
+			return errors.New("vmess vnext requires at least one user")
+		}
+		for _, user := range vnext.Users {
+			if user.ID == "" {
+				return errors.New("vmess user requires id (UUID) field")
+			}
+		}
 	}
 	return nil
 }

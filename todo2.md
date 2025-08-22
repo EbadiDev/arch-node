@@ -37,7 +37,7 @@ After implementing multi-protocol support in arch-manager, arch-node fails to st
 
 ### ✅ Priority 1: Critical Configuration Validation - COMPLETED
 
-#### ✅ 1.1 Fixed Server Struct Validation
+#### ✅ 1.1 Fixed Server Struct Validation - COMPLETED
 - **File**: `pkg/xray/config.go`
 - **Previous Issue**: 
   ```go
@@ -57,7 +57,38 @@ After implementing multi-protocol support in arch-manager, arch-node fails to st
   ```
 - **Status**: ✅ **COMPLETED**
 
-#### ✅ 1.2 Protocol-Aware Validation Logic - COMPLETED
+#### ✅ 1.2 Fixed VMess Outbound Structure - COMPLETED  
+- **File**: `pkg/xray/config.go`
+- **Previous Issue**: VMess outbounds using wrong JSON structure
+  ```json
+  {
+    "settings": {
+      "servers": [{"address": "...", "id": "...", "method": "auto"}]  // ❌ Wrong!
+    }
+  }
+  ```
+- **✅ IMPLEMENTED Fix**: VMess outbounds now use correct structure
+  ```json
+  {
+    "settings": {
+      "vnext": [
+        {
+          "address": "example.com",
+          "port": 443,
+          "users": [{"id": "uuid", "security": "auto"}]  // ✅ Correct!
+        }
+      ]
+    }
+  }
+  ```
+- **Implementation Details**:
+  - ✅ Added `VnextServer` and `VmessUser` structs for proper VMess structure
+  - ✅ Updated `MakeVmessOutbound()` to use `vnext` instead of `servers`
+  - ✅ Added `validateVnext()` function for VMess-specific validation
+  - ✅ Updated all tests to verify correct structure
+- **Status**: ✅ **COMPLETED**
+
+#### ✅ 1.3 Protocol-Aware Validation Logic - COMPLETED
 - **File**: `pkg/xray/config.go`
 - **Task**: Implement conditional validation based on protocol type
 - **✅ IMPLEMENTED Details**:
