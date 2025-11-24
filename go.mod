@@ -11,7 +11,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/spf13/cobra v1.9.1
 	github.com/xtls/xray-core v1.250608.0
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 	google.golang.org/grpc v1.75.0
 )
 
